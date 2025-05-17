@@ -56,7 +56,7 @@ const Layout: React.FC<child> = ({ children }) => {
 
   return (
     <div className="max-w-[1920px] m-auto flex flex-col">
-      <div className="text-center py-2  ">
+      <div className="text-center py-4  ">
         <h1 className="text-3xl font-semibold">MoodBoard</h1>
       </div>
 
