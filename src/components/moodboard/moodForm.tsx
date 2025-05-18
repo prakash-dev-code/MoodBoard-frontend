@@ -1,6 +1,8 @@
 import { Button, Form, Input, Radio, Select, Space, message } from "antd";
 import React from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
+import Axios from "@/utils/axios";
 
 const { TextArea } = Input;
 
@@ -12,8 +14,14 @@ interface FormValues {
 interface MoodFormProps {
   initialData?: any;
   onClose?: () => void;
+  setShowForm?: (show: boolean) => void;
 }
-const MoodForm: React.FC<MoodFormProps> = ({ initialData, onClose }) => {
+const MoodForm: React.FC<MoodFormProps> = ({
+  initialData,
+  onClose,
+  setShowForm,
+}) => {
+  const [loading, setLoading] = React.useState(false);
   const [form] = Form.useForm<FormValues>();
 
   // Set initial values on modal open
@@ -22,7 +30,7 @@ const MoodForm: React.FC<MoodFormProps> = ({ initialData, onClose }) => {
       form.setFieldsValue({
         emoji: initialData.moodTitle,
         mood: initialData.moodTitle,
-        description: initialData.moodDescritption,
+        description: initialData.moodDescription,
       });
     }
   }, [initialData, form]);
@@ -47,35 +55,57 @@ const MoodForm: React.FC<MoodFormProps> = ({ initialData, onClose }) => {
   ];
 
   const handleSubmit = async (values: FormValues) => {
-    const token = "your_token_here"; // Replace with real token
-
+    const token = localStorage.getItem("authToken");
     const payload = {
       emoji: getEmoji(values.emoji),
       moodTitle: values.mood,
-      moodDescritption: values.description || "",
+      moodDescription: values.description || "",
     };
 
-    console.log("Form values:", payload);
+    try {
+      setLoading(true);
+      let response;
 
-    // try {
-    //   const response = await axios.post(
-    //     "https://jsonplaceholder.typicode.com/posts",
-    //     payload,
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         "Content-Type": "application/json",
-    //       },
-    //     }
-    //   );
+      if (initialData) {
+        response = await Axios.put(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}moods/${initialData.id}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        toast.success("Mood updated successfully!");
+        if (onClose) {
+          onClose();
+        }
+      } else {
+        response = await Axios.post(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}moods`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        toast.success("Mood logged successfully!");
+      }
 
-    //   console.log("Response:", response.data);
-    //   message.success("Mood submitted successfully!");
-    //   form.resetFields();
-    // } catch (error) {
-    //   console.error("Submission error:", error);
-    //   message.error("Failed to submit mood.");
-    // }
+      if (setShowForm) {
+        setShowForm(false);
+      }
+
+      form.resetFields();
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("Failed to submit mood.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -146,7 +176,12 @@ const MoodForm: React.FC<MoodFormProps> = ({ initialData, onClose }) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" size="large" htmlType="submit">
+          <Button
+            type="primary"
+            size="large"
+            htmlType="submit"
+            loading={loading}
+          >
             Submit
           </Button>
         </Form.Item>

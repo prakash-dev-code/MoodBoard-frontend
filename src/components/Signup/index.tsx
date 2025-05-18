@@ -9,6 +9,8 @@ import { toFormikValidationSchema } from "zod-formik-adapter";
 import { useRouter } from "next/navigation";
 import { signUpSchema } from "@/shared/formSchema";
 import ButtonLoader from "../common/buttonLoader";
+import Axios from "@/utils/axios";
+import { message, notification } from "antd";
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,32 +25,36 @@ const Signup = () => {
     },
     validationSchema: toFormikValidationSchema(signUpSchema),
     validateOnMount: false,
-    onSubmit: async (values) => {
-      // try {
-      //   setLoading(true);
-      //   const res = await signUp({
-      //     name: values.name,
-      //     email: values.email,
-      //     password: values.password,
-      //     confirmPassword: values.confirmPassword,
-      //   });
-      //   const { status } = res as {
-      //     token: string;
-      //     status: String;
-      //     data: { user: User };
-      //   };
-      //   setLoading(false);
-      //   if (status === 'success') {
-      //     setShowOTP(true);
-      //     toast.success((res as { message?: string }).message);
-      //   } else {
-      //     toast.error((res as { message?: string }).message || 'Login failed');
-      //   }
-      // } catch (error: any) {
-      //   console.error('Login error:', error.message);
-      //   toast.error(error.message);
-      //   setLoading(false);
-      // }
+    onSubmit: async (values, { resetForm }) => {
+      console.log("data", values);
+      try {
+        setLoading(true);
+
+        const res = await Axios.post(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}users/register`,
+          {
+            name: values.name,
+            email: values.email,
+            password: values.password,
+            confirmPassword: values.confirmPassword,
+          }
+        );
+
+        const { token, user } = res.data;
+        console.log(res.data);
+        // Save token in localStorage
+        localStorage.setItem("authToken", token);
+
+        setLoading(false);
+        resetForm();
+        router.push("/");
+
+        toast.success("Signup successful");
+      } catch (error: any) {
+        console.error("Signup error:", error.message);
+        toast.error(error.response?.data?.message || "Signup failed");
+        setLoading(false);
+      }
     },
   });
 
@@ -79,7 +85,7 @@ const Signup = () => {
                     value={formik.values.name}
                     onBlur={formik.handleBlur}
                     placeholder="Enter your full name"
-                    className="rounded-lg border border-gray-300 bg-gray-100 placeholder:text-black w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
+                    className="rounded-lg border border-gray-300  placeholder:text-gray-500 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
                   />
                   {formik.touched.name && formik.errors.name && (
                     <p className="text-red-500 text-sm">{formik.errors.name}</p>
@@ -99,7 +105,7 @@ const Signup = () => {
                     value={formik.values.email}
                     onBlur={formik.handleBlur}
                     placeholder="Enter your email address"
-                    className="rounded-lg border border-gray-300 bg-gray-100 placeholder:text-black w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
+                    className="rounded-lg border border-gray-300  placeholder:text-gray-500 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
                   />
                   {formik.touched.email && formik.errors.email && (
                     <p className="text-red-500 text-sm">
@@ -123,7 +129,7 @@ const Signup = () => {
                       onBlur={formik.handleBlur}
                       placeholder="Enter your password"
                       autoComplete="on"
-                      className="rounded-lg border border-gray-300 bg-gray-100 placeholder:text-black w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500 pr-12"
+                      className="rounded-lg border border-gray-300  placeholder:text-gray-500 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500 pr-12"
                     />
                     <button
                       type="button"
@@ -158,7 +164,7 @@ const Signup = () => {
                       onChange={formik.handleChange}
                       value={formik.values.confirmPassword}
                       onBlur={formik.handleBlur}
-                      className="rounded-lg border border-gray-300 bg-gray-100 placeholder:text-black w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
+                      className="rounded-lg border border-gray-300  placeholder:text-gray-500 w-full py-3 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       type="button"
@@ -189,7 +195,7 @@ const Signup = () => {
     ${
       !formik.isValid || formik.isSubmitting
         ? "opacity-50 cursor-not-allowed"
-        : "hover:bg-blue-500"
+        : "hover:bg-blue-500 cursor-pointer"
     }`}
                 >
                   Create Account {loading && <ButtonLoader />}
@@ -197,7 +203,7 @@ const Signup = () => {
               </form>
             </div>
 
-            <p className="text-center mt-0">
+            <p className="text-center mt-4">
               Already have an account?
               <Link
                 href="/sign-in"

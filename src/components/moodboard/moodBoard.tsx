@@ -1,56 +1,79 @@
 import { Button, Modal, Popconfirm, Space } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MoodForm from "./moodForm";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-
-const moods = [
-  {
-    id: 1,
-    emoji: "😊",
-    moodTitle: "happy",
-    moodDescritption: "I am feeling great and joyful today!",
-  },
-  {
-    id: 2,
-    emoji: "😢",
-    moodTitle: "sad",
-    moodDescritption: "It’s been a tough day, feeling a bit down.",
-  },
-  {
-    id: 3,
-    emoji: "😠",
-    moodTitle: "angry",
-    moodDescritption: "Really frustrated with how things went.",
-  },
-  {
-    id: 4,
-    emoji: "😟",
-    moodTitle: "upset",
-    moodDescritption: "Something bothered me today, not in the best mood.",
-  },
-  {
-    id: 5,
-    emoji: "😕",
-    moodTitle: "confuse",
-    moodDescritption: "Not sure what’s going on, everything feels unclear.",
-  },
-  {
-    id: 6,
-    emoji: "😊",
-    moodTitle: "happy",
-    moodDescritption: "Just got some great news, feeling amazing!",
-  },
-];
+import Axios from "@/utils/axios";
+import toast from "react-hot-toast";
+import { formatFriendlyDate } from "@/utils/timeConverter";
+import Loader from "@/shared/loader";
 
 const MoodBoardComponent = () => {
+  const [moods, setMoods] = useState<any>([]);
+
   const [showForm, setShowForm] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedMood, setSelectedMood] = useState<any>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        setAuthToken(token);
+      }
+    }
+  }, []);
+
+  const getMoods = async (token: string) => {
+    try {
+      const response = await Axios.get(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}moods`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setMoods(response?.data);
+    } catch (error) {
+      console.error("getting mood error:", error);
+      toast.error("Failed to get mood.");
+    }
+  };
+
+  useEffect(() => {
+    if (authToken) {
+      getMoods(authToken);
+    }
+  }, [authToken, showForm, editModalVisible]);
 
   const handleEditClick = (mood: any) => {
     setSelectedMood(mood);
     setEditModalVisible(true);
   };
+
+  const handleMoodDelete = async (moodId: string, token: string) => {
+    try {
+      const response = await Axios.delete(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}moods/${moodId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Mood deleted successfully!");
+      getMoods(token);
+    } catch (error) {
+      console.error("Mood deletion error:", error);
+      toast.error("Failed to delete mood.");
+    }
+  };
+  if (!authToken) return <Loader />;
   return (
     <>
       <div className=" w-[98%] mx-auto flex flex-col  justify-start gap-4 h-full min-h-screen ">
@@ -65,11 +88,15 @@ const MoodBoardComponent = () => {
             {showForm ? "Cancel" : "Add Mood"}
           </Button>
         </div>
-        {showForm && <MoodForm />}
+        {showForm && <MoodForm setShowForm={setShowForm} />}
 
         <div className="flex flex-col items-center justify-center mt-8  h-full">
-          <h1 className="text-xl font-semibold mr-auto  ">Your Past Moods</h1>
-          {moods.map((mood) => (
+          {moods.length !== 0 && (
+            <h1 className="text-2xl font-semibold mr-auto mb-8  ">
+              Your Past Moods
+            </h1>
+          )}
+          {moods.map((mood: any) => (
             <div
               key={mood.id}
               style={{
@@ -84,12 +111,18 @@ const MoodBoardComponent = () => {
                 position: "relative",
               }}
             >
-              <h3 style={{ marginBottom: 8, fontSize: 18 }}>
+              <h3
+                className="font-semibold"
+                style={{ marginBottom: 8, fontSize: 18 }}
+              >
                 {mood.emoji} {mood.moodTitle}
               </h3>
               <p style={{ color: "#555", marginBottom: 15 }}>
-                {mood.moodDescritption}
+                {mood.moodDescription}
               </p>
+              <span className="text-sm text-gray-500">
+                {formatFriendlyDate(mood.createdAt)}
+              </span>
 
               <div
                 style={{
@@ -108,10 +141,12 @@ const MoodBoardComponent = () => {
 
                 <Popconfirm
                   //   key={index}
-                  title="Delete Opinion"
+                  title="Delete Mood"
                   onConfirm={(e: any) => {
                     e.stopPropagation();
-                    // DeleteOpinion(item?.id);
+                    if (authToken) {
+                      handleMoodDelete(mood?.id, authToken);
+                    }
                   }}
                   onCancel={(e: any) => {
                     e.stopPropagation();
@@ -122,7 +157,7 @@ const MoodBoardComponent = () => {
                       color: "white",
                     },
                   }}
-                  description="Are you sure to delete this Opinion?"
+                  description="Are you sure to delete this Mood?"
                   okText="Delete"
                   cancelText="Cancel"
                 >

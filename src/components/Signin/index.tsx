@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import ButtonLoader from "../common/buttonLoader";
 import { signInSchema } from "@/shared/formSchema";
+import Axios from "@/utils/axios";
 type ForgotPasswordResponse = {
   status: "success" | "error"; // or just "success" if you expect only that
   message: string;
@@ -26,26 +27,31 @@ const Signin = () => {
     validationSchema: toFormikValidationSchema(signInSchema),
     validateOnMount: false,
     onSubmit: async (values, { resetForm }) => {
-      // try {
-      //   setLoading(true);
-      //   // const res = await signIN({
-      //   //   email: values.email,
-      //   //   password: values.password,
-      //   // });
-      //   // const { token, data } = res as { token: string; data: { user: User } };
-      //   setLoading(false);
-      //   if (token) {
-      //     toast.success("Logged in successfully");
-      //     router.push("/");
-      //     resetForm();
-      //   } else {
-      //     // toast.error((res as { message?: string }).message || 'Login failed');
-      //   }
-      // } catch (error: any) {
-      //   console.error("Login error:", error.message);
-      //   toast.error(error.message);
-      //   setLoading(false);
-      // }
+      try {
+        setLoading(true);
+        const res = await Axios.post(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}users/login`,
+          {
+            email: values.email,
+            password: values.password,
+          }
+        );
+
+        const { token, user } = res.data;
+        console.log(res.data);
+        // Save token in localStorage
+        localStorage.setItem("authToken", token);
+
+        setLoading(false);
+        resetForm();
+        router.push("/");
+
+        toast.success("Signin  successful");
+      } catch (error: any) {
+        console.error("Signin error:", error.message);
+        toast.error(error.response?.data?.message || "Signin failed");
+        setLoading(false);
+      }
     },
   });
 
@@ -129,7 +135,7 @@ const Signin = () => {
     ${
       !formik.isValid || formik.isSubmitting
         ? "opacity-50 cursor-not-allowed"
-        : "hover:bg-blue-500"
+        : "hover:bg-blue-500 cursor-pointer"
     }`}
                 >
                   Sign in to account {loading && <ButtonLoader />}

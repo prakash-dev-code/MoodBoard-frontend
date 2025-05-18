@@ -83,5 +83,4 @@ export const changePasswordSchema = z
 export type AuthSchemas = {
   SignInSchema: z.infer<typeof signInSchema>;
   SignUpSchema: z.infer<typeof signUpSchema>;
-
 };
