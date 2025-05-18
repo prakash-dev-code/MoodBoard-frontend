@@ -7,6 +7,7 @@ import { child } from "@/types/common";
 import Loader from "@/shared/loader";
 import toast, { Toaster } from "react-hot-toast";
 import { Button, Modal } from "antd";
+import { FaRegArrowAltCircleUp } from "react-icons/fa";
 
 const montserratConfig = Montserrat({
   subsets: ["latin"],
@@ -74,7 +75,7 @@ const Layout: React.FC<child> = ({ children }) => {
 
         <BackTop
           style={{ bottom: "5.5rem", right: "1rem" }}
-          icon={<ArrowUpOutlined />}
+          icon={<FaRegArrowAltCircleUp />}
         />
 
         <div className="text-center mt-2 text-sm font-normal">
