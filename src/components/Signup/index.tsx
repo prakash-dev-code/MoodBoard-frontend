@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { signUpSchema } from "@/shared/formSchema";
 import ButtonLoader from "../common/buttonLoader";
 import Axios from "@/utils/axios";
-import { message, notification } from "antd";
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -40,8 +39,7 @@ const Signup = () => {
           }
         );
 
-        const { token, user } = res.data;
-        console.log(res.data);
+        const { token } = res.data;
         // Save token in localStorage
         localStorage.setItem("authToken", token);
 

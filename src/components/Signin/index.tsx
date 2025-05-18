@@ -10,14 +10,10 @@ import toast from "react-hot-toast";
 import ButtonLoader from "../common/buttonLoader";
 import { signInSchema } from "@/shared/formSchema";
 import Axios from "@/utils/axios";
-type ForgotPasswordResponse = {
-  status: "success" | "error"; // or just "success" if you expect only that
-  message: string;
-};
+
 const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -37,8 +33,7 @@ const Signin = () => {
           }
         );
 
-        const { token, user } = res.data;
-        console.log(res.data);
+        const { token } = res.data;
         // Save token in localStorage
         localStorage.setItem("authToken", token);
 

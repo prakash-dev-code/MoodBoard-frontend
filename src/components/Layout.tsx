@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Montserrat } from "next/font/google";
 import BackTop from "antd/es/float-button/BackTop";
-import { ArrowUpOutlined } from "@ant-design/icons";
+// import { ArrowUpOutlined } from "@ant-design/icons";
 import { child } from "@/types/common";
 import Loader from "@/shared/loader";
 import toast, { Toaster } from "react-hot-toast";
