@@ -1,7 +1,7 @@
 import { Button, Modal, Popconfirm, Space } from "antd";
 import React, { useEffect, useState } from "react";
 import MoodForm from "./moodForm";
-// import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import Axios from "@/utils/axios";
 import toast from "react-hot-toast";
 import { formatFriendlyDate } from "@/utils/timeConverter";
@@ -135,7 +135,7 @@ const MoodBoardComponent = () => {
               >
                 <Button
                   type="default"
-                  
+                  icon={<EditOutlined />}
                   onClick={() => handleEditClick(mood)}
                 />
 
@@ -163,7 +163,7 @@ const MoodBoardComponent = () => {
                 >
                   <Button
                     type="primary"
-                  
+                    icon={<DeleteOutlined />}
                     onClick={(e) => e.stopPropagation()}
                     danger
                   />
